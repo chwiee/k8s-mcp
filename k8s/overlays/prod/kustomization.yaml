@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+namespace: observability
+patches:
+  - target:
+      kind: Deployment
+      name: k8s-mcp
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 200m
+
+  - target:
+      kind: ClusterRoleBinding
+      name: k8s-mcp
+    patch: |-
+      - op: replace
+        path: /subjects/0/namespace
+        value: observability

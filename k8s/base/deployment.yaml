@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-mcp
+  labels:
+    app.kubernetes.io/name: k8s-mcp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: k8s-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: k8s-mcp
+      annotations:
+        ad.datadoghq.com/k8s-mcp.check_names: '["openmetrics"]'
+        ad.datadoghq.com/k8s-mcp.init_configs: '[{}]'
+        ad.datadoghq.com/k8s-mcp.instances: '[{"openmetrics_endpoint":"http://%%host%%:8080/metrics","namespace":"k8smcp"}]'
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: k8s-mcp
+      containers:
+        - name: k8s-mcp
+          image: ghcr.io/chwiee/k8s-mcp:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PORT
+              value: "8080"
+            - name: KB_DIR
+              value: /var/run/k8s-mcp/kb
+            - name: KB_REFRESH_INTERVAL
+              value: 30s
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: knowledge-base
+              mountPath: /var/run/k8s-mcp/kb
+              readOnly: true
+      volumes:
+        - name: knowledge-base
+          configMap:
+            name: k8s-mcp-kb
