@@ -116,9 +116,9 @@ type EventRecord struct {
 var (
 	namespacePattern = regexp.MustCompile(`\b(?:namespace|ns)\s+([a-z0-9-]+)`)
 	// Portuguese user prompts may include the common typo "por" instead of "pod".
-	podOrTypoPattern  = regexp.MustCompile(`\b(?:pod|po|por)\s+([a-z0-9-]+)`)
-	deploymentPattern = regexp.MustCompile(`\b(?:deployment|deploy)\s+([a-z0-9-]+)`)
-	servicePattern    = regexp.MustCompile(`\b(?:service|servico|serviço|svc)\s+([a-z0-9-]+)`)
+	podPatternWithTypo = regexp.MustCompile(`\b(?:pod|po|por)\s+([a-z0-9-]+)`)
+	deploymentPattern  = regexp.MustCompile(`\b(?:deployment|deploy)\s+([a-z0-9-]+)`)
+	servicePattern     = regexp.MustCompile(`\b(?:service|servico|serviço|svc)\s+([a-z0-9-]+)`)
 )
 
 func normalizeRequest(req SolveRequest, defaultTailLines int64) SolveRequest {
@@ -140,7 +140,7 @@ func normalizeRequest(req SolveRequest, defaultTailLines int64) SolveRequest {
 		case isServicePrompt(prompt):
 			req.Name = firstCapture(servicePattern, prompt)
 		default:
-			req.Name = firstCapture(podOrTypoPattern, prompt)
+			req.Name = firstCapture(podPatternWithTypo, prompt)
 		}
 	}
 	if req.Action == "" {
