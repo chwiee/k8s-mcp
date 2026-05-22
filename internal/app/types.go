@@ -114,9 +114,9 @@ type EventRecord struct {
 }
 
 var (
-	namespacePattern  = regexp.MustCompile(`\b(?:namespace|ns)\s+([a-z0-9-]+)`)
+	namespacePattern = regexp.MustCompile(`\b(?:namespace|ns)\s+([a-z0-9-]+)`)
 	// Portuguese user prompts may include the common typo "por" instead of "pod".
-	podPattern        = regexp.MustCompile(`\b(?:pod|po|por)\s+([a-z0-9-]+)`)
+	podOrTypoPattern  = regexp.MustCompile(`\b(?:pod|po|por)\s+([a-z0-9-]+)`)
 	deploymentPattern = regexp.MustCompile(`\b(?:deployment|deploy)\s+([a-z0-9-]+)`)
 	servicePattern    = regexp.MustCompile(`\b(?:service|servico|serviço|svc)\s+([a-z0-9-]+)`)
 )
@@ -135,12 +135,12 @@ func normalizeRequest(req SolveRequest, defaultTailLines int64) SolveRequest {
 	}
 	if req.Name == "" {
 		switch {
-		case strings.Contains(prompt, "deployment") || strings.Contains(prompt, "deploy"):
+		case isDeploymentPrompt(prompt):
 			req.Name = firstCapture(deploymentPattern, prompt)
-		case strings.Contains(prompt, "service") || strings.Contains(prompt, "servico") || strings.Contains(prompt, "serviço") || strings.Contains(prompt, "svc") || strings.Contains(prompt, "keda"):
+		case isServicePrompt(prompt):
 			req.Name = firstCapture(servicePattern, prompt)
 		default:
-			req.Name = firstCapture(podPattern, prompt)
+			req.Name = firstCapture(podOrTypoPattern, prompt)
 		}
 	}
 	if req.Action == "" {
@@ -159,11 +159,11 @@ func normalizeRequest(req SolveRequest, defaultTailLines int64) SolveRequest {
 		switch {
 		case strings.Contains(prompt, "namespace"):
 			req.Action = "inspect_namespace"
-		case strings.Contains(prompt, "keda") || strings.Contains(prompt, "service") || strings.Contains(prompt, "servico") || strings.Contains(prompt, "serviço") || strings.Contains(prompt, "escalando") || strings.Contains(prompt, "scaling"):
+		case isServicePrompt(prompt):
 			req.Action = "inspect_service"
-		case strings.Contains(prompt, "deployment") || strings.Contains(prompt, "deploy"):
+		case isDeploymentPrompt(prompt):
 			req.Action = "describe_deployment"
-		case strings.Contains(prompt, "pod") || strings.Contains(prompt, "running") || strings.Contains(prompt, "crashloop"):
+		case isPodPrompt(prompt):
 			req.Action = "inspect_pod"
 		default:
 			req.Action = "solve_issue"
@@ -239,4 +239,23 @@ func firstCapture(pattern *regexp.Regexp, value string) string {
 		return ""
 	}
 	return match[1]
+}
+
+func isDeploymentPrompt(prompt string) bool {
+	return strings.Contains(prompt, "deployment") || strings.Contains(prompt, "deploy")
+}
+
+func isServicePrompt(prompt string) bool {
+	return strings.Contains(prompt, "keda") ||
+		strings.Contains(prompt, "service") ||
+		strings.Contains(prompt, "servico") ||
+		strings.Contains(prompt, "serviço") ||
+		strings.Contains(prompt, "escalando") ||
+		strings.Contains(prompt, "scaling")
+}
+
+func isPodPrompt(prompt string) bool {
+	return strings.Contains(prompt, "pod") ||
+		strings.Contains(prompt, "running") ||
+		strings.Contains(prompt, "crashloop")
 }
