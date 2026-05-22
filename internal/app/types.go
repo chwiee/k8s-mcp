@@ -115,6 +115,7 @@ type EventRecord struct {
 
 var (
 	namespacePattern  = regexp.MustCompile(`\b(?:namespace|ns)\s+([a-z0-9-]+)`)
+	// Portuguese user prompts may include the common typo "por" instead of "pod".
 	podPattern        = regexp.MustCompile(`\b(?:pod|po|por)\s+([a-z0-9-]+)`)
 	deploymentPattern = regexp.MustCompile(`\b(?:deployment|deploy)\s+([a-z0-9-]+)`)
 	servicePattern    = regexp.MustCompile(`\b(?:service|servico|serviço|svc)\s+([a-z0-9-]+)`)

@@ -145,7 +145,7 @@ The deployment mounts the generated ConfigMap at `/var/run/k8s-mcp/kb` and the s
 
 ## GitHub Actions pipeline
 
-Workflow file: `/home/runner/work/k8s-mcp/k8s-mcp/.github/workflows/ci-deploy.yaml`
+Workflow file: `.github/workflows/ci-deploy.yaml`
 
 Pipeline stages:
 
