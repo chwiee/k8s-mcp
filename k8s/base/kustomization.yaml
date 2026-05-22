@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: default
+resources:
+  - serviceaccount.yaml
+  - rbac.yaml
+  - deployment.yaml
+  - service.yaml
+configMapGenerator:
+  - name: k8s-mcp-kb
+    files:
+      - kb/autoscaling-and-keda.md
+      - kb/common-namespace-errors.md
+      - kb/common-pod-errors.md
+      - kb/network-components.md
+generatorOptions:
+  disableNameSuffixHash: true
+images:
+  - name: ghcr.io/chwiee/k8s-mcp
+    newTag: latest
